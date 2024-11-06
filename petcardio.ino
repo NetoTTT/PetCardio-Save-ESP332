@@ -13,18 +13,37 @@ const int ecgPin = 34;  // Pino do sensor de ECG
 int ecgValue = 0;       // Variável para armazenar o valor lido do ECG
 
 // Função de configuração do Wi-Fi usando WiFiManager
+#include <WiFi.h>
+#include <WiFiManager.h>
+
 void setupWiFi() {
   WiFiManager wifiManager;
   wifiManager.setTimeout(10);  // Tempo limite de 10 segundos para conexão
   
   // Inicia o modo AP se a conexão não for bem-sucedida
-  if (!wifiManager.autoConnect("ESP32-Setup", "12345678")) {
-    Serial.println("Falha ao conectar, entrando no modo AP.");
-    delay(3000);
-    ESP.restart();  // Reinicia se não conseguir conectar ou configurar
+  if (!wifiManager.autoConnect("PetCardio", "12345678")) {
+    Serial.println("Falha ao conectar, iniciando modo AP manual.");
+
+    // Configura o modo AP manualmente para manter ativo enquanto aguarda conexão
+    WiFi.softAP("PetCardio", "12345678");
+
+    // Mantém o AP aberto até que haja uma conexão ou o tempo máximo de espera seja atingido
+    unsigned long startAttemptTime = millis();
+    while (WiFi.softAPgetStationNum() == 0 && millis() - startAttemptTime < 30000) {
+      Serial.println("Aguardando conexão no AP...");
+      delay(1000);
+    }
+
+    // Reinicia o ESP caso não haja nenhuma conexão após o tempo limite
+    if (WiFi.softAPgetStationNum() == 0) {
+      Serial.println("Nenhuma conexão no AP, reiniciando...");
+      ESP.restart();
+    }
   }
+
   Serial.println("Conectado ao WiFi!");
 }
+
 
 // Tarefa para ler o valor do ECG
 void taskReadECG(void* pvParameters) {
