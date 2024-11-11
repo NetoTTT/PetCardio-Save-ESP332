@@ -51,7 +51,7 @@ void taskReadECG(void* pvParameters) {
     ecgValue = analogRead(ecgPin);  // Lê o valor do ECG
     Serial.print("ECG Data: ");
     Serial.println(ecgValue);
-    vTaskDelay(200 / portTICK_PERIOD_MS);  // Lê a cada 0,5 segundo
+    vTaskDelay(50 / portTICK_PERIOD_MS);  // Lê a cada 50ms para aumentar a precisão da leitura
   }
 }
 
@@ -79,9 +79,10 @@ void taskSendECG(void* pvParameters) {
       Serial.println("WiFi desconectado. Tentando reconectar...");
       setupWiFi();
     }
-    vTaskDelay(500 / portTICK_PERIOD_MS);  // Envia a cada 1 segundo
+    vTaskDelay(200 / portTICK_PERIOD_MS);  // Envia a cada 200ms
   }
 }
+
 
 void setup() {
   Serial.begin(115200);
